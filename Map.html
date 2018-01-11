@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mappy</title>
+    <style>
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Optional: Makes the sample page fill the window. */
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script src="https://maps.googleapis.com/maps/api/js">//async defer
+</script>
+<script>
+    window.onload = function () {
+        initMap()
+    };
+
+    var map;
+    var marker;
+    var updated_location = 'London';
+
+    /** @constructor */
+    function CoordMapType(tileSize) {
+        this.tileSize = tileSize;
+    }
+
+    CoordMapType.prototype.getTile = function (coord, zoom, ownerDocument) {
+        var div = ownerDocument.createElement('div');
+        div.innerHTML = coord;
+        div.style.width = this.tileSize.width + 'px';
+        div.style.height = this.tileSize.height + 'px';
+        div.style.fontSize = '10';
+        div.style.borderStyle = 'solid';
+        div.style.borderWidth = '1px';
+        div.style.borderColor = '#AAAAAA';
+        return div;
+    };
+
+    function getLngLtd(address) {//returns coordinates
+        var geocoder;
+        var location;
+        geocoder = new google.maps.Geocoder();
+        geocoder.geocode({
+            'address': sap.byd.ui.mashup.context.inport.Address
+        }, function (results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+                location = results[0].geometry.location;
+                //updated_location = results[0].formated_address;
+            }
+        });
+        if(!location){
+            alert('No location found')
+        }
+        return location;
+    }
+
+    function getFormatedAddress(coordinates) {//returns string address
+        var location_marker;
+        var geocode;
+        geocode = new google.maps.Geocoder();
+        geocoder.geocode({
+            'location': coordinates
+        }, function (results, status) {
+            if (status == "OK") {
+                location_marker = results[0].formated_address;
+            }
+            else {
+                alert('No results found!');
+            }
+        });
+        return location_marker;
+    }
+
+    // function updateMap(map) {
+    //     var location_coordinates = getLngLtd(sap.byd.ui.mashup.context.inport.Address);
+    //     if (map) {
+    //         map.setCenter(location_coordinates);
+    //         placeMarkerAndPanTo(location_coordinates, map);
+    //         map.overlayMapTypes.insertAt(
+    //             0, new CoordMapType(new google.maps.Size(600, 600)));
+    //     }
+    // }
+
+    function initMap() {
+        var location_coordinates = getLngLtd(sap.byd.ui.mashup.context.inport.Address);
+
+        if (location_coordinates) {
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 14,
+                center: location_coordinates
+            });//map
+
+            map.overlayMapTypes.insertAt(
+                0, new CoordMapType(new google.maps.Size(600, 600)));
+
+            // placeMarkerAndPanTo(location_coordinates, map);
+            updated_location = location_coordinates;
+
+            // map.addListener('click', function (e) {
+            //     placeMarkerAndPanTo(e.latLng, map);
+            //     // assignOutport(e.latLng);
+            // });//click
+        }
+        else {
+            window.alert("I do not want to work, mthfkr!!!");
+        }
+    } //initMap()
+
+
+    // function placeMarkerAndPanTo(latLng, map) {
+    //     if (latLng) {
+    //         if (marker) {
+    //             marker.setMap(null);
+    //         }
+    //         marker = new google.maps.Marker({
+    //             position: latLng,
+    //             draggable: true,
+    //             map: map
+    //         });
+    //         map.panTo(latLng);
+    //         // map.setCenter(latLng)
+    //     }
+    // }
+
+    // function assignOutport(latLng) {  ///////////////////////////////SEND TO OUTPORT
+    //     var arr = {lat: parseFloat(latLng.lat), lng: parseFloat(latLng.lng)};
+    //     var formated_address = getFormatedAddress(arr);
+    //     updated_location = formated_address;
+    //
+    //     sap.byd.ui.mashup.fireResultUpdate({
+    //         'AddressCity': updated_location
+    //     });
+    // }
+
+    // sap.byd.ui.mashup.fireResultUpdate({
+    //     'AddressCity': updated_location
+    // });
+    sap.byd.ui.mashup.onContextUpdate = function () {
+        // updateMap(map);
+        console.log("Hello!I am updated context")
+    }
+
+</script>
+</body>
+</html>
